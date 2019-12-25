@@ -37,6 +37,8 @@ public class FollowingOrders : MonoBehaviour {
     private string[] rowGlyphs = new string[5];
 
     private readonly string[] HIEROGLYPH_WORDS = { "Ankh", "Cloth", "Cup", "Sieve", "Vulture" };
+    private readonly string[] VOICES = { "Female", "Male", "Child" };
+    private readonly string[] WORDS = { "Up", "Right", "Down", "Left" };
 
     private int[][] grid = { new int[5], new int[5], new int[5], new int[5], new int[5] };
     private int[][] gridIndex = { new int[5], new int[5], new int[5], new int[5], new int[5] };
@@ -45,10 +47,16 @@ public class FollowingOrders : MonoBehaviour {
     private int[] goal = new int[2];
 
     private bool isPlaying = false;
+    private bool canRestart = true;
+    private bool firstTimeShouts = true;
     private bool isUnicorn = false;
     private bool canMove = false;
 
     private Shout[] shouts = new Shout[5];
+    private int shoutCount = 3;
+
+    private string desiredDirection = "Up";
+    private string desiredHieroglyph = "Ankh";
 
     // Ran as bomb loads
     private void Awake() {
@@ -215,6 +223,39 @@ public class FollowingOrders : MonoBehaviour {
         } while (validMaze == false);
 
 
+        // Sets the goal position onto the grid
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                if (goal[0] == i && goal[1] == j)
+                    grid[i][j] = 0;
+
+                else if (grid[i][j] != -1)
+                    grid[i][j] = 20;
+            }
+        }
+
+        // Determines how far tiles are away from goal
+        for (int number = 1; number <= 14; number++) {
+            for (int i = 0; i < 5; i++) {
+                for (int j = 0; j < 5; j++) {
+                    if (grid[i][j] == 20) {
+                        // Finds the next lowest number value
+                        if (j != 0 && grid[i][j - 1] == number - 1) // Up
+                            grid[i][j] = number;
+
+                        if (i != 4 && grid[i + 1][j] == number - 1) // Right
+                            grid[i][j] = number;
+
+                        if (j != 4 && grid[i][j + 1] == number - 1) // Down
+                            grid[i][j] = number;
+
+                        if (i != 0 && grid[i - 1][j] == number - 1) // Left
+                            grid[i][j] = number;
+                    }
+                }
+            }
+        }
+
         // Sets the hieroglyphs
         for (int selection = 0; selection < 2; selection++) {
             int[] availableNumbers = { 0, 1, 2, 3, 4 };
@@ -251,6 +292,7 @@ public class FollowingOrders : MonoBehaviour {
 
         UpdatePosition();
 
+
         // Logging the grid
         string[] gridLogger = new string[25];
         string[] gridLoggerMsg = new string[5];
@@ -260,7 +302,7 @@ public class FollowingOrders : MonoBehaviour {
             for (int j = 0; j < 5; j++) {
                 if (grid[i][j] == -1)
                     gridLogger[gridIndex[i][j]] = "*";
-
+                
                 else
                     gridLogger[gridIndex[i][j]] = ".";
             }
@@ -297,8 +339,12 @@ public class FollowingOrders : MonoBehaviour {
             if (isPlaying == true)
                 isPlaying = false;
 
-            else
+            else {
                 isPlaying = true;
+
+                if (canRestart == true)
+                    StartCoroutine(DisplayShouts());
+            }
         }
     }
 
@@ -317,7 +363,6 @@ public class FollowingOrders : MonoBehaviour {
             case 0: {
                 if (position[1] != 0) {
                     position[1]--;
-                    isPlaying = false;
                     UpdatePosition();
                 }
             }
@@ -326,7 +371,6 @@ public class FollowingOrders : MonoBehaviour {
             case 1: {
                 if (position[0] != 4) {
                     position[0]++;
-                    isPlaying = false;
                     UpdatePosition();
                 }
             }
@@ -335,7 +379,6 @@ public class FollowingOrders : MonoBehaviour {
             case 2: {
                 if (position[1] != 4) {
                     position[1]++;
-                    isPlaying = false;
                     UpdatePosition();
                 }
             }
@@ -344,7 +387,6 @@ public class FollowingOrders : MonoBehaviour {
             default: {
                 if (position[0] != 0) {
                     position[0]--;
-                    isPlaying = false;
                     UpdatePosition();
                 }
             }
@@ -354,8 +396,173 @@ public class FollowingOrders : MonoBehaviour {
     }
 
 
+    // Shouts being shouted
+    private IEnumerator DisplayShouts() {
+        canRestart = false;
+
+        // Sets the shouts to a different variable so they don't get rewritten during moving
+        Shout[] tempShouts = new Shout[shouts.Length];
+        string tempDirection = desiredDirection;
+        string tempHieroglyph = desiredHieroglyph;
+
+        for (int i = 0; i < shouts.Length; i++) {
+            tempShouts[i] = shouts[i];
+        }
+
+        // Logs the desired destination if this is the first time hearing the shouts on this tile
+        if (firstTimeShouts == true) {
+            firstTimeShouts = false;
+            Debug.LogFormat("[Following Orders #{0}] Desired destination from column {1}, row {2}: {3} to {4}.", moduleId, 
+                position[0] + 1, position[1] + 1, desiredDirection, desiredHieroglyph);
+        }
+
+        if (isUnicorn == true) {
+            switch(tempDirection) {
+            case "Right": {
+                Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Right", transform);
+            }
+            break;
+
+            case "Down": {
+                Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Down", transform);
+            }
+            break;
+
+            case "Left": {
+                Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Left", transform);
+            }
+            break;
+
+            default: {
+                Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Up", transform);
+            }
+            break;
+            }
+
+            yield return new WaitForSeconds(1.0f);
+
+            switch(tempHieroglyph) {
+            case "Cloth": {
+                Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Cloth", transform);
+            }
+            break;
+
+            case "Cup": {
+                Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Cup", transform);
+            }
+            break;
+
+            case "Sieve": {
+                Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Sieve", transform);
+            }
+            break;
+
+            case "Vulture": {
+                Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Vulture", transform);
+            }
+            break;
+
+            default: {
+                Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Ankh", transform);
+            }
+            break;
+            }
+        }
+
+        else {
+            for (int i = 0; i < shoutCount; i++) {
+                PlayStandardShout(tempShouts[i]);
+                yield return new WaitForSeconds(1.5f);
+            }
+        }
+
+        yield return new WaitForSeconds(2.5f);
+        canRestart = true;
+        if (isPlaying == true)
+            StartCoroutine(DisplayShouts());
+    }
+
+    // Chooses the sound for the shout
+    private void PlayStandardShout(Shout shout) {
+        if (shout.GetVoice() == VOICES[2]) { // Child
+            switch (shout.GetDirection()) {
+            case "Right": {
+                Audio.PlaySoundAtTransform("FollowingOrders_Child_Right", transform);
+            }
+            break;
+
+            case "Down": {
+                Audio.PlaySoundAtTransform("FollowingOrders_Child_Down", transform);
+            }
+            break;
+
+            case "Left": {
+                Audio.PlaySoundAtTransform("FollowingOrders_Child_Left", transform);
+            }
+            break;
+
+            default: {
+                Audio.PlaySoundAtTransform("FollowingOrders_Child_Up", transform);
+            }
+            break;
+            }
+        }
+
+        else if (shout.GetVoice() == VOICES[1]) { // Male
+            switch (shout.GetDirection()) {
+            case "Right": {
+                Audio.PlaySoundAtTransform("FollowingOrders_Male_Right", transform);
+            }
+            break;
+
+            case "Down": {
+                Audio.PlaySoundAtTransform("FollowingOrders_Male_Down", transform);
+            }
+            break;
+
+            case "Left": {
+                Audio.PlaySoundAtTransform("FollowingOrders_Male_Left", transform);
+            }
+            break;
+
+            default: {
+                Audio.PlaySoundAtTransform("FollowingOrders_Male_Up", transform);
+            }
+            break;
+            }
+        }
+
+        else { // Female
+            switch (shout.GetDirection()) {
+            case "Right": {
+                Audio.PlaySoundAtTransform("FollowingOrders_Female_Right", transform);
+            }
+            break;
+
+            case "Down": {
+                Audio.PlaySoundAtTransform("FollowingOrders_Female_Down", transform);
+            }
+            break;
+
+            case "Left": {
+                Audio.PlaySoundAtTransform("FollowingOrders_Female_Left", transform);
+            }
+            break;
+
+            default: {
+                Audio.PlaySoundAtTransform("FollowingOrders_Female_Up", transform);
+            }
+            break;
+            }
+        }
+    }
+
+
     // Updates your current position
     private void UpdatePosition() {
+        isPlaying = false;
+        firstTimeShouts = true;
+
         // Clears all yellow lights
         for (int i = 0; i < ColumnLights.Length; i++) {
             ColumnLights[i].material = LightMarkers[0];
@@ -371,14 +578,19 @@ public class FollowingOrders : MonoBehaviour {
             Solve();
 
         // checks if the position is a trap
-        if (grid[position[0]][position[1]] == -1)
+        else if (grid[position[0]][position[1]] == -1)
             StartCoroutine(Strike());
+
+        // Gets the shouts from the tile
+        else
+            GenerateShouts();
     }
 
 
     // Module solved
     private void Solve() {
         canMove = false;
+        moduleSolved = true;
         DisplayLEDColor(3);
         GetComponent<KMBombModule>().HandlePass();
         Audio.PlaySoundAtTransform("FollowingOrders_Solve", transform);
@@ -428,6 +640,77 @@ public class FollowingOrders : MonoBehaviour {
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++)
                 Stones[gridIndex[i][j]].material = StoneMarkers[0];
+        }
+    }
+
+
+    // Generates the shouts
+    private void GenerateShouts() {
+        bool validShouts = false;
+        isUnicorn = true;//testing purposes only
+        GetDestination();
+
+        if (isUnicorn == true) {
+            validShouts = true;
+        }
+
+        //while (validShouts == false) {
+        //
+        //}
+    }
+
+    // Gets the desired destination
+    private void GetDestination() {
+        int smallestValue = grid[position[0]][position[1]];
+
+        /* 0 = Up
+         * 1 = Right
+         * 2 = Down
+         * 3 = Right
+         */
+
+        for (int i = position[0]; i <= 4; i++) { // Right
+            if (grid[i][position[1]] == -1)
+                break;
+
+            else if (grid[i][position[1]] < smallestValue) {
+                smallestValue = grid[i][position[1]];
+                desiredDirection = WORDS[1];
+                desiredHieroglyph = columnGlyphs[i];
+            }
+        }
+
+        for (int j = position[1]; j <= 4; j++) { // Down
+            if (grid[position[0]][j] == -1)
+                break;
+
+            else if (grid[position[0]][j] < smallestValue) {
+                smallestValue = grid[position[0]][j];
+                desiredDirection = WORDS[2];
+                desiredHieroglyph = rowGlyphs[j];
+            }
+        }
+
+        for (int i = position[0]; i >= 0; i--) { // Left
+            if (grid[i][position[1]] == -1)
+                break;
+
+            else if (grid[i][position[1]] < smallestValue) {
+                smallestValue = grid[i][position[1]];
+                desiredDirection = WORDS[3];
+                desiredHieroglyph = columnGlyphs[i];
+            }
+        }
+
+        for (int j = position[1]; j >= 0; j--) { // Up
+            if (grid[position[0]][j] == -1)
+                break;
+
+            else if (grid[position[0]][j] < smallestValue) {
+                smallestValue = grid[position[0]][j];
+                desiredDirection = WORDS[0];
+                desiredHieroglyph = rowGlyphs[j];
+            }
         }
     }
 }
