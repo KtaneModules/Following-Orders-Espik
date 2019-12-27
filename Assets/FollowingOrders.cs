@@ -31,7 +31,7 @@ public class FollowingOrders : MonoBehaviour {
     // Solving info
     private char firstSerialChar = '0';
     private char secondSerialChar = '0';
-    private int serialDirection = 0;
+    private string serialDirection = "Up";
 
     private string[] columnGlyphs = new string[5];
     private string[] rowGlyphs = new string[5];
@@ -55,8 +55,17 @@ public class FollowingOrders : MonoBehaviour {
     private Shout[] shouts = new Shout[5];
     private int shoutCount = 3;
 
+    int[] voiceCount = { 0, 0, 0 };
+    int[] directionCount = { 0, 0, 0, 0 };
+
+    int[] femaleDirectionCount = { 0, 0, 0, 0 };
+    int[] maleDirectionCount = { 0, 0, 0, 0 };
+    int[] childDirectionCount = { 0, 0, 0, 0 };
+
     private string desiredDirection = "Up";
     private string desiredHieroglyph = "Ankh";
+
+    private readonly int SHOUT_ATTEMPT_MAX = 10000;
 
     // Ran as bomb loads
     private void Awake() {
@@ -80,16 +89,16 @@ public class FollowingOrders : MonoBehaviour {
 
         // Gets the direction indicated by the serial number
         if (Char.IsNumber(firstSerialChar) == true && Char.IsNumber(secondSerialChar) == true)
-            serialDirection = 0; // Up
+            serialDirection = WORDS[0]; // Up
 
         else if (Char.IsNumber(firstSerialChar) == false && Char.IsNumber(secondSerialChar) == false)
-            serialDirection = 1; // Right
+            serialDirection = WORDS[1]; // Right
 
         else if (Char.IsNumber(firstSerialChar) == false && Char.IsNumber(secondSerialChar) == true)
-            serialDirection = 2; // Down
+            serialDirection = WORDS[2]; // Down
 
         else
-            serialDirection = 3; // Left
+            serialDirection = WORDS[3]; // Left
 
         // Sets the grid index to values that correspond to Stones[]
         for (int i = 0; i < 5; i++) {
@@ -101,11 +110,6 @@ public class FollowingOrders : MonoBehaviour {
         }
 
         GenerateMaze();
-
-        // Once in a blue moon
-        int random = UnityEngine.Random.Range(0, 1000);
-        if (random == 0)
-            isUnicorn = true;
     }
 
 
@@ -359,7 +363,7 @@ public class FollowingOrders : MonoBehaviour {
              * 2 = Down
              * 3 = Left
              */
-            switch(direction) {
+            switch (direction) {
             case 0: {
                 if (position[1] != 0) {
                     position[1]--;
@@ -400,6 +404,14 @@ public class FollowingOrders : MonoBehaviour {
     private IEnumerator DisplayShouts() {
         canRestart = false;
 
+        // Generates the shouts if this is the first time hearing the shouts on this tile
+        if (firstTimeShouts == true) {
+            firstTimeShouts = false;
+            GenerateShouts();
+            Debug.LogFormat("[Following Orders #{0}] Desired destination from column {1}, row {2}: {3} to {4}.", moduleId, 
+                position[0] + 1, position[1] + 1, desiredDirection, desiredHieroglyph);
+        }
+
         // Sets the shouts to a different variable so they don't get rewritten during moving
         Shout[] tempShouts = new Shout[shouts.Length];
         string tempDirection = desiredDirection;
@@ -409,63 +421,24 @@ public class FollowingOrders : MonoBehaviour {
             tempShouts[i] = shouts[i];
         }
 
-        // Logs the desired destination if this is the first time hearing the shouts on this tile
-        if (firstTimeShouts == true) {
-            firstTimeShouts = false;
-            Debug.LogFormat("[Following Orders #{0}] Desired destination from column {1}, row {2}: {3} to {4}.", moduleId, 
-                position[0] + 1, position[1] + 1, desiredDirection, desiredHieroglyph);
-        }
+        yield return new WaitForSeconds(0.5f);
 
         if (isUnicorn == true) {
-            switch(tempDirection) {
-            case "Right": {
-                Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Right", transform);
-            }
-            break;
-
-            case "Down": {
-                Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Down", transform);
-            }
-            break;
-
-            case "Left": {
-                Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Left", transform);
-            }
-            break;
-
-            default: {
-                Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Up", transform);
-            }
-            break;
+            switch (tempDirection) {
+            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Right", transform); break;
+            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Down", transform); break;
+            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Left", transform); break;
+            default: Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Up", transform); break;
             }
 
             yield return new WaitForSeconds(1.0f);
 
-            switch(tempHieroglyph) {
-            case "Cloth": {
-                Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Cloth", transform);
-            }
-            break;
-
-            case "Cup": {
-                Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Cup", transform);
-            }
-            break;
-
-            case "Sieve": {
-                Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Sieve", transform);
-            }
-            break;
-
-            case "Vulture": {
-                Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Vulture", transform);
-            }
-            break;
-
-            default: {
-                Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Ankh", transform);
-            }
-            break;
+            switch (tempHieroglyph) {
+            case "Cloth": Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Cloth", transform); break;
+            case "Cup": Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Cup", transform); break;
+            case "Sieve": Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Sieve", transform); break;
+            case "Vulture": Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Vulture", transform); break;
+            default: Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Ankh", transform); break;
             }
         }
 
@@ -476,7 +449,7 @@ public class FollowingOrders : MonoBehaviour {
             }
         }
 
-        yield return new WaitForSeconds(2.5f);
+        yield return new WaitForSeconds(2.0f);
         canRestart = true;
         if (isPlaying == true)
             StartCoroutine(DisplayShouts());
@@ -486,73 +459,28 @@ public class FollowingOrders : MonoBehaviour {
     private void PlayStandardShout(Shout shout) {
         if (shout.GetVoice() == VOICES[2]) { // Child
             switch (shout.GetDirection()) {
-            case "Right": {
-                Audio.PlaySoundAtTransform("FollowingOrders_Child_Right", transform);
-            }
-            break;
-
-            case "Down": {
-                Audio.PlaySoundAtTransform("FollowingOrders_Child_Down", transform);
-            }
-            break;
-
-            case "Left": {
-                Audio.PlaySoundAtTransform("FollowingOrders_Child_Left", transform);
-            }
-            break;
-
-            default: {
-                Audio.PlaySoundAtTransform("FollowingOrders_Child_Up", transform);
-            }
-            break;
+            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_Child_Right", transform); break;
+            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_Child_Down", transform); break;
+            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_Child_Left", transform); break;
+            default: Audio.PlaySoundAtTransform("FollowingOrders_Child_Up", transform); break;
             }
         }
 
         else if (shout.GetVoice() == VOICES[1]) { // Male
             switch (shout.GetDirection()) {
-            case "Right": {
-                Audio.PlaySoundAtTransform("FollowingOrders_Male_Right", transform);
-            }
-            break;
-
-            case "Down": {
-                Audio.PlaySoundAtTransform("FollowingOrders_Male_Down", transform);
-            }
-            break;
-
-            case "Left": {
-                Audio.PlaySoundAtTransform("FollowingOrders_Male_Left", transform);
-            }
-            break;
-
-            default: {
-                Audio.PlaySoundAtTransform("FollowingOrders_Male_Up", transform);
-            }
-            break;
+            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_Male_Right", transform); break;
+            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_Male_Down", transform); break;
+            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_Male_Left", transform); break;
+            default: Audio.PlaySoundAtTransform("FollowingOrders_Male_Up", transform); break;
             }
         }
 
         else { // Female
             switch (shout.GetDirection()) {
-            case "Right": {
-                Audio.PlaySoundAtTransform("FollowingOrders_Female_Right", transform);
-            }
-            break;
-
-            case "Down": {
-                Audio.PlaySoundAtTransform("FollowingOrders_Female_Down", transform);
-            }
-            break;
-
-            case "Left": {
-                Audio.PlaySoundAtTransform("FollowingOrders_Female_Left", transform);
-            }
-            break;
-
-            default: {
-                Audio.PlaySoundAtTransform("FollowingOrders_Female_Up", transform);
-            }
-            break;
+            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_Female_Right", transform); break;
+            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_Female_Down", transform); break;
+            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_Female_Left", transform); break;
+            default: Audio.PlaySoundAtTransform("FollowingOrders_Female_Up", transform); break;
             }
         }
     }
@@ -580,10 +508,6 @@ public class FollowingOrders : MonoBehaviour {
         // checks if the position is a trap
         else if (grid[position[0]][position[1]] == -1)
             StartCoroutine(Strike());
-
-        // Gets the shouts from the tile
-        else
-            GenerateShouts();
     }
 
 
@@ -647,16 +571,337 @@ public class FollowingOrders : MonoBehaviour {
     // Generates the shouts
     private void GenerateShouts() {
         bool validShouts = false;
-        isUnicorn = true;//testing purposes only
         GetDestination();
+        isUnicorn = false;
 
-        if (isUnicorn == true) {
-            validShouts = true;
+        int shoutAttempts = 0; // Prevents infinite loops
+
+        while (validShouts == false && shoutAttempts < SHOUT_ATTEMPT_MAX) {
+            shoutCount = UnityEngine.Random.Range(3, 6);
+
+            // Resets the counts of each direction and voice
+            for (int i = 0; i < voiceCount.Length; i++) {
+                voiceCount[i] = 0;
+            }
+
+            for (int i = 0; i < directionCount.Length; i++) {
+                directionCount[i] = 0;
+            }
+
+            // Initializes shouts
+            for (int i = 0; i < shouts.Length; i++)
+                shouts[i] = new Shout();
+
+            for (int i = 0; i < directionCount.Length; i++) {
+                directionCount[i] = 0;
+                femaleDirectionCount[i] = 0;
+                maleDirectionCount[i] = 0;
+                childDirectionCount[i] = 0;
+            }
+
+            for (int i = 0; i < voiceCount.Length; i++) {
+                voiceCount[i] = 0;
+            }
+
+            // Chooses which shouts to use
+            for (int i = 0; i < shoutCount; i++) {
+                int random = UnityEngine.Random.Range(0, 5);
+
+                if (random == 0 || random == 1) { // Female
+                    shouts[i].SetVoice(VOICES[0]);
+                    voiceCount[0]++;
+                }
+
+                else if (random == 2 || random == 3) { // Male
+                    shouts[i].SetVoice(VOICES[1]);
+                    voiceCount[1]++;
+                }
+
+                else { // Child
+                    shouts[i].SetVoice(VOICES[2]);
+                    voiceCount[2]++;
+                }
+
+                /* 0: Up
+                 * 1: Right
+                 * 2: Down
+                 * 3: Left
+                 */
+                
+                random = UnityEngine.Random.Range(0, 4);
+                shouts[i].SetDirection(WORDS[random]);
+                directionCount[random]++;
+
+                if (shouts[i].GetVoice() == VOICES[2])
+                    childDirectionCount[random]++;
+
+                else if (shouts[i].GetVoice() == VOICES[1])
+                    maleDirectionCount[random]++;
+
+                else
+                    femaleDirectionCount[random]++;
+
+                shouts[i].SetPresent(true);
+            }
+
+            int[] columnValues = { 0, 0, 0, 0, 0 };
+            int[] rowValues = { 0, 0, 0, 0, 0 };
+
+            bool[] tableGrid = SetTableGridValues(new bool[25]);
+
+            // Gets the counts of each of the true statements for the rows and columns
+            for (int i = 0; i < tableGrid.Length; i++) {
+                if (tableGrid[i] == true) {
+                    columnValues[i % 5]++;
+                    rowValues[i / 5]++;
+                }
+            }
+
+            // Finds the hieroglyph from the table grid (I feel like there's a better way to write this code)
+            string chosenHieroglyph = "";
+
+            if (columnValues[0] > columnValues[1] && columnValues[0] > columnValues[2] &&
+                columnValues[0] > columnValues[3] && columnValues[0] > columnValues[4])
+                chosenHieroglyph = HIEROGLYPH_WORDS[0];
+
+            else if (columnValues[1] > columnValues[0] && columnValues[1] > columnValues[2] &&
+                columnValues[1] > columnValues[3] && columnValues[1] > columnValues[4])
+                chosenHieroglyph = HIEROGLYPH_WORDS[1];
+
+            else if (columnValues[2] > columnValues[0] && columnValues[2] > columnValues[1] &&
+                columnValues[2] > columnValues[3] && columnValues[2] > columnValues[4])
+                chosenHieroglyph = HIEROGLYPH_WORDS[2];
+
+            else if (columnValues[3] > columnValues[0] && columnValues[3] > columnValues[1] &&
+                columnValues[3] > columnValues[2] && columnValues[3] > columnValues[4])
+                chosenHieroglyph = HIEROGLYPH_WORDS[3];
+
+            else if (columnValues[4] > columnValues[0] && columnValues[4] > columnValues[1] &&
+                columnValues[4] > columnValues[2] && columnValues[4] > columnValues[3])
+                chosenHieroglyph = HIEROGLYPH_WORDS[4];
+
+            else
+                chosenHieroglyph = HIEROGLYPH_WORDS[position[0]];
+
+
+            // If chosen hieroglyph does not match desired hieroglyph, regenerate the shouts
+            if (chosenHieroglyph == desiredHieroglyph) {
+                string chosenDirection = "";
+                string closestToHieroglyph = "";
+                int distance = 5;
+                bool tied = true;
+
+                // Finds the direction that's the closest to the hieroglyph
+                int counter = 1;
+                for (int j = position[1] - 1; j >= 0; j--) { // Up
+                    if (rowGlyphs[j] == desiredHieroglyph) {
+                        closestToHieroglyph = WORDS[0];
+
+                        if (counter < distance) {
+                            distance = counter;
+                            tied = false;
+                        }
+
+                        else if (counter == distance)
+                            tied = true;
+
+                        break;
+                    }
+                }
+
+                counter = 1;
+                for (int i = position[0] + 1; i <= 4; i++) { // Right
+                    if (columnGlyphs[i] == desiredHieroglyph) {
+                        closestToHieroglyph = WORDS[1];
+
+                        if (counter < distance) {
+                            distance = counter;
+                            tied = false;
+                        }
+
+                        else if (counter == distance)
+                            tied = true;
+
+                        break;
+                    }
+                }
+
+                counter = 1;
+                for (int j = position[1] + 1; j <= 0; j++) { // Down
+                    if (rowGlyphs[j] == desiredHieroglyph) {
+                        closestToHieroglyph = WORDS[2];
+
+                        if (counter < distance) {
+                            distance = counter;
+                            tied = false;
+                        }
+
+                        else if (counter == distance)
+                            tied = true;
+
+                        break;
+                    }
+                }
+
+                counter = 1;
+                for (int i = position[0] - 1; i >= 4; i--) { // Left
+                    if (columnGlyphs[i] == desiredHieroglyph) {
+                        closestToHieroglyph = WORDS[3];
+
+                        if (counter < distance) {
+                            distance = counter;
+                            tied = false;
+                        }
+
+                        else if (counter == distance)
+                            tied = true;
+
+                        break;
+                    }
+                }
+
+                if (tied == true)
+                    closestToHieroglyph = serialDirection;
+
+                // Finds the direction from the table grid
+                if (rowValues[0] > rowValues[1] && rowValues[0] > rowValues[2] &&
+                rowValues[0] > rowValues[3] && rowValues[0] > rowValues[4])
+                    chosenDirection = WORDS[0];
+
+                else if (rowValues[1] > rowValues[0] && rowValues[1] > rowValues[2] &&
+                    rowValues[1] > rowValues[3] && rowValues[1] > rowValues[4])
+                    chosenDirection = WORDS[3];
+
+                else if (rowValues[2] > rowValues[0] && rowValues[2] > rowValues[1] &&
+                    rowValues[2] > rowValues[3] && rowValues[2] > rowValues[4])
+                    chosenDirection = WORDS[2];
+
+                else if (rowValues[3] > rowValues[0] && rowValues[3] > rowValues[1] &&
+                    rowValues[3] > rowValues[2] && rowValues[3] > rowValues[4])
+                    chosenDirection = WORDS[1];
+
+                else if (rowValues[4] > rowValues[0] && rowValues[4] > rowValues[1] &&
+                    rowValues[4] > rowValues[2] && rowValues[4] > rowValues[3])
+                    chosenDirection = closestToHieroglyph;
+
+                else {
+                    switch (position[1]) {
+                    case 1: chosenDirection = WORDS[3]; break;
+                    case 2: chosenDirection = WORDS[2]; break;
+                    case 3: chosenDirection = WORDS[1]; break;
+                    case 4: chosenDirection = closestToHieroglyph; break;
+                    default: chosenDirection = WORDS[0]; break;
+                    }
+                }
+
+                // If chosen direction does not match desired direction, regenerate the shouts
+                if (chosenDirection == desiredDirection)
+                    validShouts = true;
+            }
+
+            shoutAttempts++;
         }
 
-        //while (validShouts == false) {
-        //
-        //}
+        if (shoutCount >= SHOUT_ATTEMPT_MAX || validShouts == false)
+            isUnicorn = true;
+    }
+
+    // Sets the values for the table grid
+    private bool[] SetTableGridValues(bool[] tableGrid) {
+        // Initializes all the values in the table grid
+        for (int i = 0; i < tableGrid.Length; i++) {
+            tableGrid[i] = false;
+        }
+
+        tableGrid[4] = true;
+
+        for (int i = 0; i < shoutCount; i++) {
+            if (i != shoutCount - 1) {
+                if (shouts[i].GetVoice() == VOICES[1] && shouts[i + 1].GetDirection() == WORDS[3])
+                    tableGrid[2] = true;
+            }
+
+            if (i != 0) {
+                if (shouts[i].GetDirection() != shouts[i - 1].GetDirection())
+                    tableGrid[4] = false;
+            }
+
+            if (i > 1) {
+                if (shouts[i].GetDirection() == shouts[i - 2].GetDirection())
+                    tableGrid[14] = true;
+            }
+        }
+
+        if (rowGlyphs[position[1]] == HIEROGLYPH_WORDS[2])
+            tableGrid[0] = true;
+
+        if (voiceCount[0] > 0)
+            tableGrid[1] = true;
+
+        if (directionCount[0] == 0 && directionCount[2] == 0)
+            tableGrid[3] = true;
+
+        if (directionCount[1] >= 2)
+            tableGrid[5] = true;
+
+        if (directionCount[3] == 0)
+            tableGrid[6] = true;
+
+        if (voiceCount[0] >= 2)
+            tableGrid[7] = true;
+
+        if (columnGlyphs[position[0]] == HIEROGLYPH_WORDS[4])
+            tableGrid[8] = true;
+
+        if (directionCount[2] >= 1)
+            tableGrid[9] = true;
+
+        if (voiceCount[1] == 0)
+            tableGrid[10] = true;
+
+        if (columnGlyphs[position[0]] == HIEROGLYPH_WORDS[0])
+            tableGrid[11] = true;
+
+        if (directionCount[3] >= 1)
+            tableGrid[12] = true;
+
+        if (voiceCount[2] > 0)
+            tableGrid[13] = true;
+
+        if (directionCount[0] >= 3 || directionCount[1] >= 3 || directionCount[2] >= 3 || directionCount[3] >= 3)
+            tableGrid[15] = true;
+
+        if (voiceCount[1] > 0)
+            tableGrid[16] = true;
+
+        if (voiceCount[0] > 0 && voiceCount[1] > 0 && voiceCount[2] == 0)
+            tableGrid[17] = true;
+
+        if (shoutCount == 3)
+            tableGrid[18] = true;
+
+        if (rowGlyphs[position[1]] == HIEROGLYPH_WORDS[3])
+            tableGrid[19] = true;
+
+        if (shouts[0].GetVoice() != shouts[shoutCount - 1].GetVoice())
+            tableGrid[20] = true;
+
+        if ((femaleDirectionCount[0] > 0 && femaleDirectionCount[2] > 0) || (femaleDirectionCount[1] > 0 && femaleDirectionCount[3] > 0) ||
+            (maleDirectionCount[0] > 0 && maleDirectionCount[2] > 0) || (maleDirectionCount[1] > 0 && maleDirectionCount[3] > 0) ||
+            (childDirectionCount[0] > 0 && childDirectionCount[2] > 0) || (childDirectionCount[1] > 0 && childDirectionCount[3] > 0))
+            tableGrid[21] = true;
+
+        if (directionCount[0] > 0 && directionCount[1] > 0 && directionCount[2] > 0 && directionCount[3] > 0)
+            tableGrid[22] = true;
+
+        if (voiceCount[0] > 0 && voiceCount[1] > 0 && voiceCount[2] > 0)
+            tableGrid[23] = true;
+
+        if (shoutCount == 5)
+            tableGrid[24] = true;
+
+
+        return tableGrid;
     }
 
     // Gets the desired destination

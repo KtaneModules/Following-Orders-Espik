@@ -11,7 +11,7 @@ public class Shout {
     private bool present;
 
     public Shout() {
-        voice = "Male";
+        voice = "Female";
         direction = "Up";
         present = false;
     }
