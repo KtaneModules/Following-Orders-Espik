@@ -5,7 +5,13 @@ using System.Linq;
 using UnityEngine;
 using KModkit;
 
-public class FollowingOrders : MonoBehaviour {
+/* Things to still do:
+ * Add TP support
+ * Find child's voices that are actually shouts, not samples from kid's songs
+ * Make the switch move
+ * Make the logging for the grid better, kinda like Forget This' logging */
+
+public class FollowingOrders : MonoBehaviour { // This code is exactly 1,000 lines, lmao
     public KMAudio Audio;
     public KMBombInfo Bomb;
     public KMBombModule Module;
@@ -65,7 +71,7 @@ public class FollowingOrders : MonoBehaviour {
     private string desiredDirection = "Up";
     private string desiredHieroglyph = "Ankh";
 
-    private readonly int SHOUT_ATTEMPT_MAX = 10000;
+    private readonly int SHOUT_ATTEMPT_MAX = 100000; // Once in a blue moon
 
     // Ran as bomb loads
     private void Awake() {
@@ -78,10 +84,13 @@ public class FollowingOrders : MonoBehaviour {
             int j = i;
             ArrowButtons[i].OnInteract += delegate () { ArrowPressed(j); return false; };
         }
+
+        
     }
 
     // Gets information
     private void Start() {
+
         // Gets the first and second characters of the serial number
         char[] serialNumber = Bomb.GetSerialNumber().ToCharArray();
         firstSerialChar = serialNumber[0];
@@ -153,7 +162,10 @@ public class FollowingOrders : MonoBehaviour {
                     gridBackup[i][j] = grid[i][j];
             }
 
+            int[] availableNumbers = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+
             // Selects starting position - if it can't find a good position then regenerate the maze
+
             for (int attempts = 1; attempts <= 15 && validMaze == false; attempts++) {
                 // Restores the backup of the grid
                 for (int i = 0; i < 5; i++) {
@@ -161,7 +173,21 @@ public class FollowingOrders : MonoBehaviour {
                         grid[i][j] = gridBackup[i][j];
                 }
 
-                int startPos = attempts; //change this later
+                // Selects a starting position
+                int startPos = attempts;
+                int random = UnityEngine.Random.Range(1, stonesRemaining + 1);
+
+                for (int i = 0; i < availableNumbers.Length; i++) {
+                    if (availableNumbers[i] == random) {
+                        startPos = i;
+                        availableNumbers[i] = -1;
+                    }
+
+                    else if (availableNumbers[i] > random)
+                        availableNumbers[i]--;
+                }
+
+                stonesRemaining--;
 
                 // Sets the position into the grid
                 for (int i = 0; i < 5; i++) {
@@ -336,7 +362,6 @@ public class FollowingOrders : MonoBehaviour {
 
     // Switch is flipped
     private void FlipSwitch() {
-        Switch.AddInteractionPunch();
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, gameObject.transform);
 
         if (moduleSolved == false) {
@@ -403,6 +428,7 @@ public class FollowingOrders : MonoBehaviour {
     // Shouts being shouted
     private IEnumerator DisplayShouts() {
         canRestart = false;
+        bool logShouts = firstTimeShouts;
 
         // Generates the shouts if this is the first time hearing the shouts on this tile
         if (firstTimeShouts == true) {
@@ -424,6 +450,9 @@ public class FollowingOrders : MonoBehaviour {
         yield return new WaitForSeconds(0.5f);
 
         if (isUnicorn == true) {
+            if (logShouts == true)
+                Debug.LogFormat("[Following Orders #{0}] Once in a blue moon, Microsoft Sam just told you the destination.", moduleId);
+
             switch (tempDirection) {
             case "Right": Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Right", transform); break;
             case "Down": Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Down", transform); break;
@@ -443,10 +472,19 @@ public class FollowingOrders : MonoBehaviour {
         }
 
         else {
+            string shoutLog = "";
+
             for (int i = 0; i < shoutCount; i++) {
-                PlayStandardShout(tempShouts[i]);
+                shoutLog += PlayStandardShout(tempShouts[i], logShouts);
+
+                if (i != shoutCount - 1)
+                    shoutLog += ", ";
+
                 yield return new WaitForSeconds(1.5f);
             }
+
+            if (logShouts == true)
+                Debug.LogFormat("[Following Orders #{0}] Shouts: {1}", moduleId, shoutLog);
         }
 
         yield return new WaitForSeconds(2.0f);
@@ -456,33 +494,42 @@ public class FollowingOrders : MonoBehaviour {
     }
 
     // Chooses the sound for the shout
-    private void PlayStandardShout(Shout shout) {
+    private string PlayStandardShout(Shout shout, bool logShout) {
+        string log = "";
+
         if (shout.GetVoice() == VOICES[2]) { // Child
             switch (shout.GetDirection()) {
-            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_Child_Right", transform); break;
-            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_Child_Down", transform); break;
-            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_Child_Left", transform); break;
-            default: Audio.PlaySoundAtTransform("FollowingOrders_Child_Up", transform); break;
+            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_Child_Right", transform); log = "Child Right"; break;
+            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_Child_Down", transform); log = "Child Down"; break;
+            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_Child_Left", transform); log = "Child Left"; break;
+            default: Audio.PlaySoundAtTransform("FollowingOrders_Child_Up", transform); log = "Child Up"; break;
             }
         }
 
         else if (shout.GetVoice() == VOICES[1]) { // Male
             switch (shout.GetDirection()) {
-            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_Male_Right", transform); break;
-            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_Male_Down", transform); break;
-            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_Male_Left", transform); break;
-            default: Audio.PlaySoundAtTransform("FollowingOrders_Male_Up", transform); break;
+            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_Male_Right", transform); log = "Male Right"; break;
+            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_Male_Down", transform); log = "Male Down"; break;
+            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_Male_Left", transform); log = "Male Left"; break;
+            default: Audio.PlaySoundAtTransform("FollowingOrders_Male_Up", transform); log = "Male Up"; break;
             }
         }
 
         else { // Female
             switch (shout.GetDirection()) {
-            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_Female_Right", transform); break;
-            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_Female_Down", transform); break;
-            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_Female_Left", transform); break;
-            default: Audio.PlaySoundAtTransform("FollowingOrders_Female_Up", transform); break;
+            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_Female_Right", transform); log = "Female Right"; break;
+            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_Female_Down", transform); log = "Female Down"; break;
+            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_Female_Left", transform); log = "Female Left"; break;
+            default: Audio.PlaySoundAtTransform("FollowingOrders_Female_Up", transform); log = "Female Up"; break;
             }
         }
+
+        // Logging the shouts
+        if (logShout == true)
+            return log;
+
+        else
+            return "";
     }
 
 
@@ -518,7 +565,7 @@ public class FollowingOrders : MonoBehaviour {
         DisplayLEDColor(3);
         GetComponent<KMBombModule>().HandlePass();
         Audio.PlaySoundAtTransform("FollowingOrders_Solve", transform);
-        Debug.LogFormat("[Following Orders #{0}] Module solved!", moduleId);
+        Debug.LogFormat("[Following Orders #{0}] Module solved! Walk like an Egyptian!", moduleId);
     }
 
     // Module struck
@@ -605,22 +652,14 @@ public class FollowingOrders : MonoBehaviour {
 
             // Chooses which shouts to use
             for (int i = 0; i < shoutCount; i++) {
-                int random = UnityEngine.Random.Range(0, 5);
+                /* 0: Female
+                 * 1: Male
+                 * 2: Child
+                 */
 
-                if (random == 0 || random == 1) { // Female
-                    shouts[i].SetVoice(VOICES[0]);
-                    voiceCount[0]++;
-                }
-
-                else if (random == 2 || random == 3) { // Male
-                    shouts[i].SetVoice(VOICES[1]);
-                    voiceCount[1]++;
-                }
-
-                else { // Child
-                    shouts[i].SetVoice(VOICES[2]);
-                    voiceCount[2]++;
-                }
+                int random = UnityEngine.Random.Range(0, 3);
+                shouts[i].SetVoice(VOICES[random]);
+                voiceCount[random]++;
 
                 /* 0: Up
                  * 1: Right
