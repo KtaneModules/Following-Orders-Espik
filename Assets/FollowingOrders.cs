@@ -4,21 +4,22 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using KModkit;
+using System.Text.RegularExpressions;
 
 /* Things to still do:
- * Add TP support
  * Find child's voices that are actually shouts, not samples from kid's songs
- * Make the switch move
+ * Make moving the switch work properly
  * Make the logging for the grid better, kinda like Forget This' logging */
 
-public class FollowingOrders : MonoBehaviour { // This code is exactly 1,000 lines, lmao
+public class FollowingOrders : MonoBehaviour {
     public KMAudio Audio;
     public KMBombInfo Bomb;
     public KMBombModule Module;
 
     public KMSelectable[] ArrowButtons;
-    public KMSelectable Switch;
+    public KMSelectable[] Switch;
 
+    public Renderer[] SwitchModels;
     public Renderer[] Stones;
     public Renderer[] ColumnLights;
     public Renderer[] RowLights;
@@ -57,6 +58,7 @@ public class FollowingOrders : MonoBehaviour { // This code is exactly 1,000 lin
     private bool firstTimeShouts = true;
     private bool isUnicorn = false;
     private bool canMove = false;
+    private bool switchState = false;
 
     private Shout[] shouts = new Shout[5];
     private int shoutCount = 3;
@@ -78,14 +80,15 @@ public class FollowingOrders : MonoBehaviour { // This code is exactly 1,000 lin
         moduleId = moduleIdCounter++;
 
         // Delegation
-        Switch.OnInteract += delegate () { FlipSwitch(); return false; };
+        Switch[0].OnInteract += delegate () { FlipSwitch(false); return false; };
+        Switch[1].OnInteract += delegate () { FlipSwitch(true); return false; };
 
         for (int i = 0; i < ArrowButtons.Length; i++) {
             int j = i;
             ArrowButtons[i].OnInteract += delegate () { ArrowPressed(j); return false; };
         }
 
-        
+
     }
 
     // Gets information
@@ -119,6 +122,9 @@ public class FollowingOrders : MonoBehaviour { // This code is exactly 1,000 lin
         }
 
         GenerateMaze();
+
+        Switch[1].enabled = false;
+        SwitchModels[1].enabled = false;
     }
 
 
@@ -293,7 +299,7 @@ public class FollowingOrders : MonoBehaviour { // This code is exactly 1,000 lin
 
             for (int numbersLeft = 5; numbersLeft > 0; numbersLeft--) {
                 int random = UnityEngine.Random.Range(0, numbersLeft);
-                
+
                 for (int i = 0; i < HIEROGLYPH_WORDS.Length; i++) {
                     if (availableNumbers[i] == random) {
                         chosenNumbers[5 - numbersLeft] = i;
@@ -326,13 +332,13 @@ public class FollowingOrders : MonoBehaviour { // This code is exactly 1,000 lin
         // Logging the grid
         string[] gridLogger = new string[25];
         string[] gridLoggerMsg = new string[5];
-        
+
         // Gets the traps from the grid
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
                 if (grid[i][j] == -1)
                     gridLogger[gridIndex[i][j]] = "*";
-                
+
                 else
                     gridLogger[gridIndex[i][j]] = ".";
             }
@@ -344,13 +350,13 @@ public class FollowingOrders : MonoBehaviour { // This code is exactly 1,000 lin
                 gridLogger[i * 5 + 3] + " " + gridLogger[i * 5 + 4];
         }
 
-        Debug.LogFormat("[Following Orders #{0}] The maze generated as such, where '.' represents a safe tile and '*' represents a trapped tile: \n{1}\n{2}\n{3}\n{4}\n{5}", moduleId, 
+        Debug.LogFormat("[Following Orders #{0}] The maze generated as such, where '.' represents a safe tile and '*' represents a trapped tile: \n{1}\n{2}\n{3}\n{4}\n{5}", moduleId,
             gridLoggerMsg[0], gridLoggerMsg[1], gridLoggerMsg[2], gridLoggerMsg[3], gridLoggerMsg[4]);
 
         Debug.LogFormat("[Following Orders #{0}] Your starting position is column {1}, row {2}.", moduleId, position[0] + 1, position[1] + 1);
         Debug.LogFormat("[Following Orders #{0}] Your goal is column {1}, row {2}.", moduleId, goal[0] + 1, goal[1] + 1);
 
-        Debug.LogFormat("[Following Orders #{0}] Column Hieroglyphs: {1}, {2}, {3}, {4}, {5}", moduleId, 
+        Debug.LogFormat("[Following Orders #{0}] Column Hieroglyphs: {1}, {2}, {3}, {4}, {5}", moduleId,
             columnGlyphs[0], columnGlyphs[1], columnGlyphs[2], columnGlyphs[3], columnGlyphs[4]);
 
         Debug.LogFormat("[Following Orders #{0}] Row Hieroglyphs: {1}, {2}, {3}, {4}, {5}", moduleId,
@@ -361,8 +367,25 @@ public class FollowingOrders : MonoBehaviour { // This code is exactly 1,000 lin
 
 
     // Switch is flipped
-    private void FlipSwitch() {
+    private void FlipSwitch(bool state) {
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, gameObject.transform);
+
+        switchState = state;
+
+        if (state == false) {
+            Switch[1].enabled = true;
+            SwitchModels[1].enabled = true;
+            Switch[0].enabled = false;
+            SwitchModels[0].enabled = false;
+        }
+
+        else {
+            Switch[0].enabled = true;
+            SwitchModels[0].enabled = true;
+            Switch[1].enabled = false;
+            SwitchModels[1].enabled = false;
+        }
+
 
         if (moduleSolved == false) {
             if (isPlaying == true)
@@ -434,7 +457,7 @@ public class FollowingOrders : MonoBehaviour { // This code is exactly 1,000 lin
         if (firstTimeShouts == true) {
             firstTimeShouts = false;
             GenerateShouts();
-            Debug.LogFormat("[Following Orders #{0}] Desired destination from column {1}, row {2}: {3} to {4}.", moduleId, 
+            Debug.LogFormat("[Following Orders #{0}] Desired destination from column {1}, row {2}: {3} to {4}.", moduleId,
                 position[0] + 1, position[1] + 1, desiredDirection, desiredHieroglyph);
         }
 
@@ -666,7 +689,7 @@ public class FollowingOrders : MonoBehaviour { // This code is exactly 1,000 lin
                  * 2: Down
                  * 3: Left
                  */
-                
+
                 random = UnityEngine.Random.Range(0, 4);
                 shouts[i].SetDirection(WORDS[random]);
                 directionCount[random]++;
@@ -995,6 +1018,120 @@ public class FollowingOrders : MonoBehaviour { // This code is exactly 1,000 lin
                 desiredDirection = WORDS[0];
                 desiredHieroglyph = rowGlyphs[j];
             }
+        }
+    }
+
+
+    // Twitch Plays - made by eXish
+
+
+    //twitch plays
+#pragma warning disable 414
+    private readonly string TwitchHelpMessage = @"!{0} toggle/switch [Toggles the switch to turn the speaker on or off] | !{0} ldru [Presses the specified arrow button(s)]";
+#pragma warning restore 414
+    IEnumerator ProcessTwitchCommand(string command) {
+        if (Regex.IsMatch(command, @"^\s*toggle\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) || Regex.IsMatch(command, @"^\s*switch\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)) {
+            yield return null;
+
+            if (switchState == false)
+                Switch[0].OnInteract();
+
+            else
+                Switch[1].OnInteract();
+
+            yield break;
+        }
+        command = command.Replace(" ", "");
+        char[] validmoves = { 'l', 'L', 'u', 'U', 'r', 'R', 'd', 'D' };
+        for (int i = 0; i < command.Length; i++) {
+            if (!validmoves.Contains(command.ElementAt(i))) {
+                yield return "sendtochaterror The specified arrow button '" + command.ElementAt(i) + "' is not valid!";
+                yield break;
+            }
+        }
+        yield return null;
+        int temppos0 = position[0];
+        int temppos1 = position[1];
+        for (int i = 0; i < command.Length; i++) {
+            if (command.ElementAt(i).Equals('l') || command.ElementAt(i).Equals('L')) {
+                temppos0--;
+                if (grid[temppos0][temppos1] == -1) {
+                    yield return "strike";
+                    break;
+                }
+                else if (temppos0 == goal[0] && temppos1 == goal[1]) {
+                    yield return "solve";
+                    break;
+                }
+            }
+            else if (command.ElementAt(i).Equals('d') || command.ElementAt(i).Equals('D')) {
+                temppos1++;
+                if (grid[temppos0][temppos1] == -1) {
+                    yield return "strike";
+                    break;
+                }
+                else if (temppos0 == goal[0] && temppos1 == goal[1]) {
+                    yield return "solve";
+                    break;
+                }
+            }
+            else if (command.ElementAt(i).Equals('r') || command.ElementAt(i).Equals('R')) {
+                temppos0++;
+                if (grid[temppos0][temppos1] == -1) {
+                    yield return "strike";
+                    break;
+                }
+                else if (temppos0 == goal[0] && temppos1 == goal[1]) {
+                    yield return "solve";
+                    break;
+                }
+            }
+            else if (command.ElementAt(i).Equals('u') || command.ElementAt(i).Equals('U')) {
+                temppos1--;
+                if (grid[temppos0][temppos1] == -1) {
+                    yield return "strike";
+                    break;
+                }
+                else if (temppos0 == goal[0] && temppos1 == goal[1]) {
+                    yield return "solve";
+                    break;
+                }
+            }
+        }
+        for (int i = 0; i < command.Length; i++) {
+            if (command.ElementAt(i).Equals('l') || command.ElementAt(i).Equals('L')) {
+                ArrowButtons[3].OnInteract();
+            }
+            else if (command.ElementAt(i).Equals('d') || command.ElementAt(i).Equals('D')) {
+                ArrowButtons[2].OnInteract();
+            }
+            else if (command.ElementAt(i).Equals('r') || command.ElementAt(i).Equals('R')) {
+                ArrowButtons[1].OnInteract();
+            }
+            else if (command.ElementAt(i).Equals('u') || command.ElementAt(i).Equals('U')) {
+                ArrowButtons[0].OnInteract();
+            }
+            yield return new WaitForSeconds(0.1f);
+        }
+    }
+
+    //tp force solve handler
+    IEnumerator TwitchHandleForcedSolve() {
+        while (!moduleSolved) {
+            GetDestination();
+            if (desiredDirection.Equals("Up")) {
+                ArrowButtons[0].OnInteract();
+            }
+            else if (desiredDirection.Equals("Right")) {
+                ArrowButtons[1].OnInteract();
+            }
+            else if (desiredDirection.Equals("Down")) {
+                ArrowButtons[2].OnInteract();
+            }
+            else if (desiredDirection.Equals("Left")) {
+                ArrowButtons[3].OnInteract();
+            }
+            yield return new WaitForSeconds(0.1f);
         }
     }
 }
