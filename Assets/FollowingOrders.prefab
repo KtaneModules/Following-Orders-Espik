@@ -41,7 +41,7 @@ GameObject:
   - component: {fileID: 33688843102824662}
   - component: {fileID: 114560053111815316}
   m_Layer: 0
-  m_Name: Switch_Highlight_Down
+  m_Name: Switch_Highlight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -450,23 +450,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!1 &1286703108692224
-GameObject:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 5
-  m_Component:
-  - component: {fileID: 4759675438942378}
-  - component: {fileID: 33934714049853494}
-  - component: {fileID: 114499328226028332}
-  m_Layer: 0
-  m_Name: Switch_Highlight_Up
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
 --- !u!1 &1291982373079500
 GameObject:
   m_ObjectHideFlags: 1
@@ -813,7 +796,6 @@ GameObject:
   - component: {fileID: 4493294464794682}
   - component: {fileID: 33731870009873270}
   - component: {fileID: 23887409096820730}
-  - component: {fileID: 114584781688808600}
   - component: {fileID: 114133655938729054}
   m_Layer: 0
   m_Name: Switch_Up
@@ -1739,7 +1721,6 @@ Transform:
   - {fileID: 4493294464794682}
   - {fileID: 4844251405296038}
   - {fileID: 4172608178332734}
-  - {fileID: 4759675438942378}
   m_Father: {fileID: 4804336076344490}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1952,19 +1933,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4132804754446960}
   m_RootOrder: 14
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &4759675438942378
-Transform:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1286703108692224}
-  m_LocalRotation: {x: 0.5004361, y: 0.49956343, z: -0.5004361, w: 0.4995635}
-  m_LocalPosition: {x: -0.6195405, y: 0.20000002, z: -0.30673867}
-  m_LocalScale: {x: -0.087899946, y: -0.13789992, z: -0.0479}
-  m_Children: []
-  m_Father: {fileID: 4541759382594282}
-  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4768892420457792
 Transform:
@@ -4577,13 +4545,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1061320514107998}
   m_Mesh: {fileID: 4300100, guid: fceb7e6885b4b1c47a0e29fcb10a3255, type: 3}
---- !u!33 &33934714049853494
-MeshFilter:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1286703108692224}
-  m_Mesh: {fileID: 4300012, guid: fceb7e6885b4b1c47a0e29fcb10a3255, type: 3}
 --- !u!33 &33948225574233884
 MeshFilter:
   m_ObjectHideFlags: 1
@@ -4998,7 +4959,7 @@ MonoBehaviour:
   - {fileID: 114574452108175150}
   - {fileID: 114303090299188798}
   - {fileID: 114420510870768008}
-  - {fileID: 114584781688808600}
+  - {fileID: 0}
   IsPassThrough: 0
   ChildRowLength: 0
   Highlight: {fileID: 114299178407846372}
@@ -5153,9 +5114,7 @@ MonoBehaviour:
   - {fileID: 114303090299188798}
   - {fileID: 114574452108175150}
   - {fileID: 114854560087402058}
-  Switch:
-  - {fileID: 114420510870768008}
-  - {fileID: 114584781688808600}
+  Switch: {fileID: 114420510870768008}
   SwitchModels:
   - {fileID: 23391620119260558}
   - {fileID: 23887409096820730}
@@ -5310,19 +5269,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   HighlightScale: {x: 1.2, y: 1.2, z: 0.5}
   OutlineAmount: 0
---- !u!114 &114499328226028332
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1286703108692224}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -706292897, guid: 45b809be76fd7a3468b6f517bced6f28, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  HighlightScale: {x: 1.1, y: 1.1, z: 0.5}
-  OutlineAmount: 0
 --- !u!114 &114513002039495742
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5467,28 +5413,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShaderNames:
   - KT/Mobile/DiffuseTint
---- !u!114 &114584781688808600
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1574089685430998}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 1702003387, guid: 45b809be76fd7a3468b6f517bced6f28, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Parent: {fileID: 114191571856339200}
-  Children: []
-  IsPassThrough: 0
-  ChildRowLength: 0
-  Highlight: {fileID: 114499328226028332}
-  SelectableColliders: []
-  DefaultSelectableIndex: 0
-  AllowSelectionWrapX: 0
-  AllowSelectionWrapY: 0
-  ForceSelectionHighlight: 0
-  ForceInteractionHighlight: 0
 --- !u!114 &114604917419781136
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -14,10 +14,10 @@ MonoBehaviour:
   id: FollowingOrders
   title: Following Orders
   author: Espik
-  description: "Following Orders v1.1\n\"This is the first module that wants you to
+  description: "Following Orders v1.2\n\"This is the first module that wants you to
     succeed so badly, it\u2019s yelling the answer at you!\"\n\nManual: https://ktane.timwi.de/HTML/Following%20Orders.html\n\nSource
     Code: https://github.com/Espik/Following-Orders\n\nAuthors: Espik, MarioXTurn,
     Noah, Sean"
-  version: v1.1
+  version: v1.2
   outputFolder: build
   previewImage: {fileID: 2800000, guid: b0b8dce2b53f00b419ffe685b34fce1b, type: 3}

@@ -8,8 +8,8 @@ using System.Text.RegularExpressions;
 
 /* Things to still do:
  * Find child's voices that are actually shouts, not samples from kid's songs
- * Make moving the switch work properly
- * Make the logging for the grid better, kinda like Forget This' logging */
+ * Make it so the goal doesn't choose the first tile that's the farthest away in case of a tie for farthest away
+ */
 
 public class FollowingOrders : MonoBehaviour {
     public KMAudio Audio;
@@ -17,7 +17,7 @@ public class FollowingOrders : MonoBehaviour {
     public KMBombModule Module;
 
     public KMSelectable[] ArrowButtons;
-    public KMSelectable[] Switch;
+    public KMSelectable Switch;
 
     public Renderer[] SwitchModels;
     public Renderer[] Stones;
@@ -80,15 +80,12 @@ public class FollowingOrders : MonoBehaviour {
         moduleId = moduleIdCounter++;
 
         // Delegation
-        Switch[0].OnInteract += delegate () { FlipSwitch(false); return false; };
-        Switch[1].OnInteract += delegate () { FlipSwitch(true); return false; };
+        Switch.OnInteract += delegate () { FlipSwitch(!switchState); return false; };
 
         for (int i = 0; i < ArrowButtons.Length; i++) {
             int j = i;
             ArrowButtons[i].OnInteract += delegate () { ArrowPressed(j); return false; };
         }
-
-
     }
 
     // Gets information
@@ -123,7 +120,6 @@ public class FollowingOrders : MonoBehaviour {
 
         GenerateMaze();
 
-        Switch[1].enabled = false;
         SwitchModels[1].enabled = false;
     }
 
@@ -216,6 +212,7 @@ public class FollowingOrders : MonoBehaviour {
                     for (int i = 0; i < 5; i++) {
                         for (int j = 0; j < 5; j++) {
                             if (grid[i][j] == 20) {
+
                                 // Finds the next lowest number value
                                 if (j != 0 && grid[i][j - 1] == number - 1) { // Up
                                     grid[i][j] = number;
@@ -248,7 +245,7 @@ public class FollowingOrders : MonoBehaviour {
                     // Sets the goal position as the farthest tile away
                     for (int i = 0; i < 5; i++) {
                         for (int j = 0; j < 5; j++) {
-                            if (grid[i][j] == largestValue) { //change this later
+                            if (grid[i][j] == largestValue) {
                                 goal[0] = i;
                                 goal[1] = j;
                             }
@@ -275,6 +272,7 @@ public class FollowingOrders : MonoBehaviour {
             for (int i = 0; i < 5; i++) {
                 for (int j = 0; j < 5; j++) {
                     if (grid[i][j] == 20) {
+
                         // Finds the next lowest number value
                         if (j != 0 && grid[i][j - 1] == number - 1) // Up
                             grid[i][j] = number;
@@ -373,16 +371,12 @@ public class FollowingOrders : MonoBehaviour {
         switchState = state;
 
         if (state == false) {
-            Switch[1].enabled = true;
             SwitchModels[1].enabled = true;
-            Switch[0].enabled = false;
             SwitchModels[0].enabled = false;
         }
 
         else {
-            Switch[0].enabled = true;
             SwitchModels[0].enabled = true;
-            Switch[1].enabled = false;
             SwitchModels[1].enabled = false;
         }
 
@@ -789,7 +783,7 @@ public class FollowingOrders : MonoBehaviour {
                 }
 
                 counter = 1;
-                for (int j = position[1] + 1; j <= 0; j++) { // Down
+                for (int j = position[1] + 1; j <= 4; j++) { // Down
                     if (rowGlyphs[j] == desiredHieroglyph) {
                         closestToHieroglyph = WORDS[2];
 
@@ -806,7 +800,7 @@ public class FollowingOrders : MonoBehaviour {
                 }
 
                 counter = 1;
-                for (int i = position[0] - 1; i >= 4; i--) { // Left
+                for (int i = position[0] - 1; i >= 0; i--) { // Left
                     if (columnGlyphs[i] == desiredHieroglyph) {
                         closestToHieroglyph = WORDS[3];
 
@@ -1032,13 +1026,7 @@ public class FollowingOrders : MonoBehaviour {
     IEnumerator ProcessTwitchCommand(string command) {
         if (Regex.IsMatch(command, @"^\s*toggle\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) || Regex.IsMatch(command, @"^\s*switch\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)) {
             yield return null;
-
-            if (switchState == false)
-                Switch[0].OnInteract();
-
-            else
-                Switch[1].OnInteract();
-
+            Switch.OnInteract();
             yield break;
         }
         command = command.Replace(" ", "");
