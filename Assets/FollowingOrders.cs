@@ -75,6 +75,46 @@ public class FollowingOrders : MonoBehaviour {
 
     private readonly int SHOUT_ATTEMPT_MAX = 100000; // Once in a blue moon
 
+
+    // Testing mode
+    private bool testMode = false; // Make this true for test mode
+
+    private string testSerialDirection = "Left";
+
+    private int[] testGrid = { -1, -1, 1, -1, 2,
+                               3, 4, 5, 6, 7,
+                               -1, 8, 9, 10, -1,
+                               -1, -1, -1, -1, 11,
+                               12, 13, 14, -1, 15}; // -1 = trap, 1++ = safe
+
+    private int testStartPos = 7;
+    private int[] testGoalPos = { 1, 2 };
+
+    private int[] testColumnGlyphs = { 0, 4, 3, 1, 2 };
+    private int[] testRowGlyphs = { 1, 3, 0, 4, 2 };
+    /* 0 = Ankh
+     * 1 = Cloth
+     * 2 = Cup
+     * 3 = Sieve
+     * 4 = Vulture
+     */
+
+    private int testShoutCount = 5;
+
+    private int[] testShoutVoices = { 2, 1, 1, 0, 1 };
+    /* 0: Female
+     * 1: Male
+     * 2: Child
+     */
+
+    private int[] testShoutDirections = { 0, 2, 0, 3, 0 };
+    /* 0: Up
+     * 1: Right
+     * 2: Down
+     * 3: Left
+     */
+
+
     // Ran as bomb loads
     private void Awake() {
         moduleId = moduleIdCounter++;
@@ -91,23 +131,32 @@ public class FollowingOrders : MonoBehaviour {
     // Gets information
     private void Start() {
 
+        // Logs if test mode is turned on.
+        if (testMode == true)
+            Debug.LogFormat("[Following Orders #{0}] Test mode is turned on.", moduleId);
+
         // Gets the first and second characters of the serial number
         char[] serialNumber = Bomb.GetSerialNumber().ToCharArray();
         firstSerialChar = serialNumber[0];
         secondSerialChar = serialNumber[1];
 
         // Gets the direction indicated by the serial number
-        if (Char.IsNumber(firstSerialChar) == true && Char.IsNumber(secondSerialChar) == true)
-            serialDirection = WORDS[0]; // Up
+        if (testMode == false) {
+            if (Char.IsNumber(firstSerialChar) == true && Char.IsNumber(secondSerialChar) == true)
+                serialDirection = WORDS[0]; // Up
 
-        else if (Char.IsNumber(firstSerialChar) == false && Char.IsNumber(secondSerialChar) == false)
-            serialDirection = WORDS[1]; // Right
+            else if (Char.IsNumber(firstSerialChar) == false && Char.IsNumber(secondSerialChar) == false)
+                serialDirection = WORDS[1]; // Right
 
-        else if (Char.IsNumber(firstSerialChar) == false && Char.IsNumber(secondSerialChar) == true)
-            serialDirection = WORDS[2]; // Down
+            else if (Char.IsNumber(firstSerialChar) == false && Char.IsNumber(secondSerialChar) == true)
+                serialDirection = WORDS[2]; // Down
+
+            else
+                serialDirection = WORDS[3]; // Left
+        }
 
         else
-            serialDirection = WORDS[3]; // Left
+            serialDirection = testSerialDirection;
 
         // Sets the grid index to values that correspond to Stones[]
         for (int i = 0; i < 5; i++) {
@@ -139,20 +188,28 @@ public class FollowingOrders : MonoBehaviour {
             int stonesRemaining = 25;
 
             // Sets the trapped stones
-            for (int traps = 0; traps < 10; traps++) {
-                // Gets a value of where to put the trapped stone
-                int random = UnityEngine.Random.Range(1, stonesRemaining + 1);
-                stonesRemaining--;
+            if (testMode == false) {
+                for (int traps = 0; traps < 10; traps++) {
+                    // Gets a value of where to put the trapped stone
+                    int random = UnityEngine.Random.Range(1, stonesRemaining + 1);
+                    stonesRemaining--;
 
-                // Finds the stone that has that number and relaces it with a trap
-                for (int i = 0; i < 5; i++) {
-                    for (int j = 0; j < 5; j++) {
-                        if (grid[i][j] == random)
-                            grid[i][j] = -1;
+                    // Finds the stone that has that number and relaces it with a trap
+                    for (int i = 0; i < 5; i++) {
+                        for (int j = 0; j < 5; j++) {
+                            if (grid[i][j] == random)
+                                grid[i][j] = -1;
 
-                        if (grid[i][j] > random)
-                            grid[i][j]--;
+                            if (grid[i][j] > random)
+                                grid[i][j]--;
+                        }
                     }
+                }
+            }
+
+            else {
+                for (int i = 0; i < testGrid.Length; i++) {
+                    grid[i % 5][i / 5] = testGrid[i];
                 }
             }
 
@@ -177,17 +234,23 @@ public class FollowingOrders : MonoBehaviour {
 
                 // Selects a starting position
                 int startPos = attempts;
-                int random = UnityEngine.Random.Range(1, stonesRemaining + 1);
 
-                for (int i = 0; i < availableNumbers.Length; i++) {
-                    if (availableNumbers[i] == random) {
-                        startPos = i;
-                        availableNumbers[i] = -1;
+                if (testMode == false) {
+                    int random = UnityEngine.Random.Range(1, stonesRemaining + 1);
+
+                    for (int i = 0; i < availableNumbers.Length; i++) {
+                        if (availableNumbers[i] == random) {
+                            startPos = i;
+                            availableNumbers[i] = -1;
+                        }
+
+                        else if (availableNumbers[i] > random)
+                            availableNumbers[i]--;
                     }
-
-                    else if (availableNumbers[i] > random)
-                        availableNumbers[i]--;
                 }
+
+                else
+                    startPos = testStartPos;
 
                 stonesRemaining--;
 
@@ -239,17 +302,24 @@ public class FollowingOrders : MonoBehaviour {
                 }
 
                 // If there exists a tile is at least 5 tiles away from the starting location
-                if (largestValue >= 5) {
+                if (largestValue >= 5 || testMode == true) {
                     validMaze = true;
 
                     // Sets the goal position as the farthest tile away
-                    for (int i = 0; i < 5; i++) {
-                        for (int j = 0; j < 5; j++) {
-                            if (grid[i][j] == largestValue) {
-                                goal[0] = i;
-                                goal[1] = j;
+                    if (testMode == false) {
+                        for (int i = 0; i < 5; i++) {
+                            for (int j = 0; j < 5; j++) {
+                                if (grid[i][j] == largestValue) {
+                                    goal[0] = i;
+                                    goal[1] = j;
+                                }
                             }
                         }
+                    }
+
+                    else {
+                        goal[0] = testGoalPos[0];
+                        goal[1] = testGoalPos[1];
                     }
                 }
             }
@@ -291,36 +361,47 @@ public class FollowingOrders : MonoBehaviour {
         }
 
         // Sets the hieroglyphs
-        for (int selection = 0; selection < 2; selection++) {
-            int[] availableNumbers = { 0, 1, 2, 3, 4 };
-            int[] chosenNumbers = new int[5];
+        if (testMode == false) {
+            for (int selection = 0; selection < 2; selection++) {
+                int[] availableNumbers = { 0, 1, 2, 3, 4 };
+                int[] chosenNumbers = new int[5];
 
-            for (int numbersLeft = 5; numbersLeft > 0; numbersLeft--) {
-                int random = UnityEngine.Random.Range(0, numbersLeft);
+                for (int numbersLeft = 5; numbersLeft > 0; numbersLeft--) {
+                    int random = UnityEngine.Random.Range(0, numbersLeft);
 
-                for (int i = 0; i < HIEROGLYPH_WORDS.Length; i++) {
-                    if (availableNumbers[i] == random) {
-                        chosenNumbers[5 - numbersLeft] = i;
-                        availableNumbers[i] = -1;
+                    for (int i = 0; i < HIEROGLYPH_WORDS.Length; i++) {
+                        if (availableNumbers[i] == random) {
+                            chosenNumbers[5 - numbersLeft] = i;
+                            availableNumbers[i] = -1;
+                        }
+
+                        else if (availableNumbers[i] > random)
+                            availableNumbers[i]--;
                     }
+                }
 
-                    else if (availableNumbers[i] > random)
-                        availableNumbers[i]--;
+                if (selection == 0) { // Column
+                    for (int i = 0; i < columnGlyphs.Length; i++) {
+                        columnGlyphs[i] = HIEROGLYPH_WORDS[chosenNumbers[i]];
+                        ColumnHieroglyphs[i].material = Hieroglyphs[chosenNumbers[i]];
+                    }
+                }
+
+                else { // Row
+                    for (int i = 0; i < rowGlyphs.Length; i++) {
+                        rowGlyphs[i] = HIEROGLYPH_WORDS[chosenNumbers[i]];
+                        RowHieroglyphs[i].material = Hieroglyphs[chosenNumbers[i]];
+                    }
                 }
             }
+        }
 
-            if (selection == 0) { // Column
-                for (int i = 0; i < columnGlyphs.Length; i++) {
-                    columnGlyphs[i] = HIEROGLYPH_WORDS[chosenNumbers[i]];
-                    ColumnHieroglyphs[i].material = Hieroglyphs[chosenNumbers[i]];
-                }
-            }
-
-            else { // Row
-                for (int i = 0; i < rowGlyphs.Length; i++) {
-                    rowGlyphs[i] = HIEROGLYPH_WORDS[chosenNumbers[i]];
-                    RowHieroglyphs[i].material = Hieroglyphs[chosenNumbers[i]];
-                }
+        else {
+            for (int i = 0; i < testColumnGlyphs.Length; i++) {
+                columnGlyphs[i] = HIEROGLYPH_WORDS[testColumnGlyphs[i]];
+                ColumnHieroglyphs[i].material = Hieroglyphs[testColumnGlyphs[i]];
+                rowGlyphs[i] = HIEROGLYPH_WORDS[testRowGlyphs[i]];
+                RowHieroglyphs[i].material = Hieroglyphs[testRowGlyphs[i]];
             }
         }
 
@@ -641,7 +722,11 @@ public class FollowingOrders : MonoBehaviour {
         int shoutAttempts = 0; // Prevents infinite loops
 
         while (validShouts == false && shoutAttempts < SHOUT_ATTEMPT_MAX) {
-            shoutCount = UnityEngine.Random.Range(3, 6);
+            if (testMode == false)
+                shoutCount = UnityEngine.Random.Range(3, 6);
+
+            else
+                shoutCount = testShoutCount;
 
             // Resets the counts of each direction and voice
             for (int i = 0; i < voiceCount.Length; i++) {
@@ -675,6 +760,9 @@ public class FollowingOrders : MonoBehaviour {
                  */
 
                 int random = UnityEngine.Random.Range(0, 3);
+                if (testMode == true)
+                    random = testShoutVoices[i];
+
                 shouts[i].SetVoice(VOICES[random]);
                 voiceCount[random]++;
 
@@ -685,6 +773,9 @@ public class FollowingOrders : MonoBehaviour {
                  */
 
                 random = UnityEngine.Random.Range(0, 4);
+                if (testMode == true)
+                    random = testShoutDirections[i];
+
                 shouts[i].SetDirection(WORDS[random]);
                 directionCount[random]++;
 
@@ -751,9 +842,8 @@ public class FollowingOrders : MonoBehaviour {
                 int counter = 1;
                 for (int j = position[1] - 1; j >= 0; j--) { // Up
                     if (rowGlyphs[j] == desiredHieroglyph) {
-                        closestToHieroglyph = WORDS[0];
-
                         if (counter < distance) {
+                            closestToHieroglyph = WORDS[0];
                             distance = counter;
                             tied = false;
                         }
@@ -763,14 +853,15 @@ public class FollowingOrders : MonoBehaviour {
 
                         break;
                     }
+
+                    counter++;
                 }
 
                 counter = 1;
                 for (int i = position[0] + 1; i <= 4; i++) { // Right
                     if (columnGlyphs[i] == desiredHieroglyph) {
-                        closestToHieroglyph = WORDS[1];
-
                         if (counter < distance) {
+                            closestToHieroglyph = WORDS[1];
                             distance = counter;
                             tied = false;
                         }
@@ -780,14 +871,15 @@ public class FollowingOrders : MonoBehaviour {
 
                         break;
                     }
+
+                    counter++;
                 }
 
                 counter = 1;
                 for (int j = position[1] + 1; j <= 4; j++) { // Down
                     if (rowGlyphs[j] == desiredHieroglyph) {
-                        closestToHieroglyph = WORDS[2];
-
                         if (counter < distance) {
+                            closestToHieroglyph = WORDS[2];
                             distance = counter;
                             tied = false;
                         }
@@ -797,14 +889,15 @@ public class FollowingOrders : MonoBehaviour {
 
                         break;
                     }
+
+                    counter++;
                 }
 
                 counter = 1;
                 for (int i = position[0] - 1; i >= 0; i--) { // Left
                     if (columnGlyphs[i] == desiredHieroglyph) {
-                        closestToHieroglyph = WORDS[3];
-
                         if (counter < distance) {
+                            closestToHieroglyph = WORDS[3];
                             distance = counter;
                             tied = false;
                         }
@@ -814,6 +907,8 @@ public class FollowingOrders : MonoBehaviour {
 
                         break;
                     }
+
+                    counter++;
                 }
 
                 if (tied == true)
