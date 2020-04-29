@@ -19,6 +19,8 @@ public class FollowingOrders : MonoBehaviour {
     public KMSelectable[] ArrowButtons;
     public KMSelectable Switch;
 
+    public Transform speakerPos;
+
     public Renderer[] SwitchModels;
     public Renderer[] Stones;
     public Renderer[] ColumnLights;
@@ -447,11 +449,11 @@ public class FollowingOrders : MonoBehaviour {
 
     // Switch is flipped
     private void FlipSwitch(bool state) {
-        Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, gameObject.transform);
+        Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, Switch.transform);
 
         switchState = state;
 
-        if (state == false) {
+        if (state == true) {
             SwitchModels[1].enabled = true;
             SwitchModels[0].enabled = false;
         }
@@ -478,7 +480,7 @@ public class FollowingOrders : MonoBehaviour {
     // Directional arrow is pressed
     private void ArrowPressed(int direction) {
         ArrowButtons[direction].AddInteractionPunch(0.5f);
-        Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, gameObject.transform);
+        Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, ArrowButtons[direction].transform);
 
         if (moduleSolved == false && canMove == true) {
             /* 0 = Up
@@ -552,20 +554,20 @@ public class FollowingOrders : MonoBehaviour {
                 Debug.LogFormat("[Following Orders #{0}] Once in a blue moon, Microsoft Sam just told you the destination.", moduleId);
 
             switch (tempDirection) {
-            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Right", transform); break;
-            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Down", transform); break;
-            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Left", transform); break;
-            default: Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Up", transform); break;
+            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Right", speakerPos); break;
+            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Down", speakerPos); break;
+            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Left", speakerPos); break;
+            default: Audio.PlaySoundAtTransform("FollowingOrders_MSDir_Up", speakerPos); break;
             }
 
             yield return new WaitForSeconds(1.0f);
 
             switch (tempHieroglyph) {
-            case "Cloth": Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Cloth", transform); break;
-            case "Cup": Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Cup", transform); break;
-            case "Sieve": Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Sieve", transform); break;
-            case "Vulture": Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Vulture", transform); break;
-            default: Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Ankh", transform); break;
+            case "Cloth": Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Cloth", speakerPos); break;
+            case "Cup": Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Cup", speakerPos); break;
+            case "Sieve": Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Sieve", speakerPos); break;
+            case "Vulture": Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Vulture", speakerPos); break;
+            default: Audio.PlaySoundAtTransform("FollowingOrders_MSHei_Ankh", speakerPos); break;
             }
         }
 
@@ -597,28 +599,28 @@ public class FollowingOrders : MonoBehaviour {
 
         if (shout.GetVoice() == VOICES[2]) { // Child
             switch (shout.GetDirection()) {
-            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_Child_Right", transform); log = "Child Right"; break;
-            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_Child_Down", transform); log = "Child Down"; break;
-            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_Child_Left", transform); log = "Child Left"; break;
-            default: Audio.PlaySoundAtTransform("FollowingOrders_Child_Up", transform); log = "Child Up"; break;
+            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_Child_Right", speakerPos); log = "Child Right"; break;
+            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_Child_Down", speakerPos); log = "Child Down"; break;
+            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_Child_Left", speakerPos); log = "Child Left"; break;
+            default: Audio.PlaySoundAtTransform("FollowingOrders_Child_Up", speakerPos); log = "Child Up"; break;
             }
         }
 
         else if (shout.GetVoice() == VOICES[1]) { // Male
             switch (shout.GetDirection()) {
-            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_Male_Right", transform); log = "Male Right"; break;
-            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_Male_Down", transform); log = "Male Down"; break;
-            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_Male_Left", transform); log = "Male Left"; break;
-            default: Audio.PlaySoundAtTransform("FollowingOrders_Male_Up", transform); log = "Male Up"; break;
+            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_Male_Right", speakerPos); log = "Male Right"; break;
+            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_Male_Down", speakerPos); log = "Male Down"; break;
+            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_Male_Left", speakerPos); log = "Male Left"; break;
+            default: Audio.PlaySoundAtTransform("FollowingOrders_Male_Up", speakerPos); log = "Male Up"; break;
             }
         }
 
         else { // Female
             switch (shout.GetDirection()) {
-            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_Female_Right", transform); log = "Female Right"; break;
-            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_Female_Down", transform); log = "Female Down"; break;
-            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_Female_Left", transform); log = "Female Left"; break;
-            default: Audio.PlaySoundAtTransform("FollowingOrders_Female_Up", transform); log = "Female Up"; break;
+            case "Right": Audio.PlaySoundAtTransform("FollowingOrders_Female_Right", speakerPos); log = "Female Right"; break;
+            case "Down": Audio.PlaySoundAtTransform("FollowingOrders_Female_Down", speakerPos); log = "Female Down"; break;
+            case "Left": Audio.PlaySoundAtTransform("FollowingOrders_Female_Left", speakerPos); log = "Female Left"; break;
+            default: Audio.PlaySoundAtTransform("FollowingOrders_Female_Up", speakerPos); log = "Female Up"; break;
             }
         }
 
@@ -662,7 +664,7 @@ public class FollowingOrders : MonoBehaviour {
         moduleSolved = true;
         DisplayLEDColor(3);
         GetComponent<KMBombModule>().HandlePass();
-        Audio.PlaySoundAtTransform("FollowingOrders_Solve", transform);
+        Audio.PlaySoundAtTransform("FollowingOrders_Solve", speakerPos);
         Debug.LogFormat("[Following Orders #{0}] Module solved! Walk like an Egyptian!", moduleId);
     }
 
@@ -1113,11 +1115,10 @@ public class FollowingOrders : MonoBehaviour {
 
     // Twitch Plays - made by eXish
 
-
-    //twitch plays
-#pragma warning disable 414
+    //tp command handler
+    #pragma warning disable 414
     private readonly string TwitchHelpMessage = @"!{0} toggle/switch [Toggles the switch to turn the speaker on or off] | !{0} ldru [Presses the specified arrow button(s)]";
-#pragma warning restore 414
+    #pragma warning restore 414
     IEnumerator ProcessTwitchCommand(string command) {
         if (Regex.IsMatch(command, @"^\s*toggle\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) || Regex.IsMatch(command, @"^\s*switch\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)) {
             yield return null;
@@ -1128,70 +1129,27 @@ public class FollowingOrders : MonoBehaviour {
         char[] validmoves = { 'l', 'L', 'u', 'U', 'r', 'R', 'd', 'D' };
         for (int i = 0; i < command.Length; i++) {
             if (!validmoves.Contains(command.ElementAt(i))) {
+                yield return null;
                 yield return "sendtochaterror The specified arrow button '" + command.ElementAt(i) + "' is not valid!";
                 yield break;
             }
         }
         yield return null;
-        int temppos0 = position[0];
-        int temppos1 = position[1];
         for (int i = 0; i < command.Length; i++) {
-            if (command.ElementAt(i).Equals('l') || command.ElementAt(i).Equals('L')) {
-                temppos0--;
-                if (grid[temppos0][temppos1] == -1) {
-                    yield return "strike";
-                    break;
-                }
-                else if (temppos0 == goal[0] && temppos1 == goal[1]) {
-                    yield return "solve";
-                    break;
-                }
-            }
-            else if (command.ElementAt(i).Equals('d') || command.ElementAt(i).Equals('D')) {
-                temppos1++;
-                if (grid[temppos0][temppos1] == -1) {
-                    yield return "strike";
-                    break;
-                }
-                else if (temppos0 == goal[0] && temppos1 == goal[1]) {
-                    yield return "solve";
-                    break;
-                }
-            }
-            else if (command.ElementAt(i).Equals('r') || command.ElementAt(i).Equals('R')) {
-                temppos0++;
-                if (grid[temppos0][temppos1] == -1) {
-                    yield return "strike";
-                    break;
-                }
-                else if (temppos0 == goal[0] && temppos1 == goal[1]) {
-                    yield return "solve";
-                    break;
-                }
-            }
-            else if (command.ElementAt(i).Equals('u') || command.ElementAt(i).Equals('U')) {
-                temppos1--;
-                if (grid[temppos0][temppos1] == -1) {
-                    yield return "strike";
-                    break;
-                }
-                else if (temppos0 == goal[0] && temppos1 == goal[1]) {
-                    yield return "solve";
-                    break;
-                }
-            }
-        }
-        for (int i = 0; i < command.Length; i++) {
-            if (command.ElementAt(i).Equals('l') || command.ElementAt(i).Equals('L')) {
+            if (command.ElementAt(i).Equals('l') || command.ElementAt(i).Equals('L'))
+            {
                 ArrowButtons[3].OnInteract();
             }
-            else if (command.ElementAt(i).Equals('d') || command.ElementAt(i).Equals('D')) {
+            else if (command.ElementAt(i).Equals('d') || command.ElementAt(i).Equals('D'))
+            {
                 ArrowButtons[2].OnInteract();
             }
-            else if (command.ElementAt(i).Equals('r') || command.ElementAt(i).Equals('R')) {
+            else if (command.ElementAt(i).Equals('r') || command.ElementAt(i).Equals('R'))
+            {
                 ArrowButtons[1].OnInteract();
             }
-            else if (command.ElementAt(i).Equals('u') || command.ElementAt(i).Equals('U')) {
+            else if (command.ElementAt(i).Equals('u') || command.ElementAt(i).Equals('U'))
+            {
                 ArrowButtons[0].OnInteract();
             }
             yield return new WaitForSeconds(0.1f);
