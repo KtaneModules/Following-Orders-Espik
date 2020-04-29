@@ -1403,7 +1403,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1013823579070576}
   m_LocalRotation: {x: 0.5004361, y: 0.49956343, z: -0.5004361, w: 0.4995635}
-  m_LocalPosition: {x: -0.61954033, y: 0.2, z: -0.30673856}
+  m_LocalPosition: {x: -0.61954033, y: 0.175, z: -0.30673856}
   m_LocalScale: {x: -0.0879, y: -0.13790001, z: -0.0479}
   m_Children: []
   m_Father: {fileID: 4541759382594282}
@@ -1510,7 +1510,7 @@ Transform:
   m_GameObject: {fileID: 1526759921728576}
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0.1706639, y: 0.17053744, z: 0.084121235}
-  m_LocalScale: {x: 0.09480494, y: 0.094804965, z: 0.09480494}
+  m_LocalScale: {x: 0.08480494, y: 0.094804965, z: 0.09480494}
   m_Children: []
   m_Father: {fileID: 4132804754446960}
   m_RootOrder: 17
@@ -1551,7 +1551,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1969500040705238}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0, z: -1}
+  m_LocalPosition: {x: 0, y: -0, z: -0.7}
   m_LocalScale: {x: 0.9996339, y: 0.9996337, z: 1.0011356}
   m_Children: []
   m_Father: {fileID: 4252080772320810}
@@ -1783,7 +1783,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1180430363064442}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0, z: 1}
+  m_LocalPosition: {x: 0, y: -0, z: 0.7}
   m_LocalScale: {x: 0.99963343, y: 0.9996326, z: 1.001134}
   m_Children: []
   m_Father: {fileID: 4490272471291500}
@@ -2184,7 +2184,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1031157544057830}
   m_LocalRotation: {x: -0, y: -0.00000005960463, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0.7}
   m_LocalScale: {x: 0.9996317, y: 0.99963284, z: 1.001134}
   m_Children: []
   m_Father: {fileID: 4671082964371932}
@@ -2236,7 +2236,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1462079456266546}
   m_LocalRotation: {x: -0, y: -0, z: -0.00000007014608, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: -1}
+  m_LocalPosition: {x: -0, y: 0, z: -0.7}
   m_LocalScale: {x: 0.9996331, y: 0.9996336, z: 1.0011357}
   m_Children: []
   m_Father: {fileID: 4815129311967448}
@@ -4954,14 +4954,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Parent: {fileID: 0}
   Children:
-  - {fileID: 114526555649040462}
-  - {fileID: 114854560087402058}
-  - {fileID: 114574452108175150}
-  - {fileID: 114303090299188798}
   - {fileID: 114420510870768008}
+  - {fileID: 114526555649040462}
+  - {fileID: 0}
+  - {fileID: 114854560087402058}
+  - {fileID: 0}
+  - {fileID: 114303090299188798}
+  - {fileID: 0}
+  - {fileID: 114574452108175150}
   - {fileID: 0}
   IsPassThrough: 0
-  ChildRowLength: 0
+  ChildRowLength: 3
   Highlight: {fileID: 114299178407846372}
   SelectableColliders: []
   DefaultSelectableIndex: 0
@@ -5115,6 +5118,7 @@ MonoBehaviour:
   - {fileID: 114574452108175150}
   - {fileID: 114854560087402058}
   Switch: {fileID: 114420510870768008}
+  speakerPos: {fileID: 4208051811444988}
   SwitchModels:
   - {fileID: 23391620119260558}
   - {fileID: 23887409096820730}
