@@ -6,11 +6,6 @@ using UnityEngine;
 using KModkit;
 using System.Text.RegularExpressions;
 
-/* Things to still do:
- * Find child's voices that are actually shouts, not samples from kid's songs
- * Make it so the goal doesn't choose the first tile that's the farthest away in case of a tie for farthest away
- */
-
 public class FollowingOrders : MonoBehaviour {
     public KMAudio Audio;
     public KMBombInfo Bomb;
